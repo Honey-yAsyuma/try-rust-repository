@@ -11,7 +11,8 @@ fn main() {
   // ownership_();
   // ref_();
   // closures_();
-  hof_();
+  // hof_();
+  trait_();
 }
 
 // borrows a slice
@@ -213,4 +214,89 @@ fn hof_() {
     .filter(|&n_squared| is_odd(n_squared))
     .fold(0, |acc, n_squared| acc + n_squared);
   println!("{}", sum_of_squared_odd_numbers);
+}
+
+#[derive(Debug)]
+struct Sheep {
+  naked: bool,
+  name: &'static str,
+}
+
+struct Cow {}
+struct Dog {}
+
+trait Animal {
+  fn new(name: &'static str) -> Self;
+
+  fn name(&self) -> &'static str;
+  fn noise(&self) -> &'static str;
+
+  fn talk(&self) {
+    println!("{}", self.name());
+  }
+}
+
+trait LoveAnimal {
+  fn noise(&self) -> &'static str;
+}
+
+impl Sheep {
+  fn is_naked(&self) -> bool {
+    self.naked
+  }
+
+  fn shear(&mut self) {
+    if self.is_naked() {
+      println!("{}", self.name());
+    } else {
+      println!("{}", self.name);
+      self.naked = true;
+    }
+  }
+}
+
+impl Animal for Sheep {
+  fn new(name: &'static str) -> Sheep {
+    Sheep {
+      name: name,
+      naked: false,
+    }
+  }
+
+  fn noise(&self) -> &'static str {
+    "baaah!"
+  }
+
+  fn name(&self) -> &'static str {
+    self.name
+  }
+}
+
+impl LoveAnimal for Cow {
+  fn noise(&self) -> &'static str {
+    "mooooo!"
+  }
+}
+
+impl LoveAnimal for Dog {
+  fn noise(&self) -> &'static str {
+    "bow wow"
+  }
+}
+
+fn random_animal(ran: f64) -> Box<dyn LoveAnimal> {
+  if ran < 0.5 {
+    Box::new(Dog {})
+  } else {
+    Box::new(Cow {})
+  }
+}
+
+fn trait_() {
+  let mut dolly: Sheep = Animal::new("Dolly");
+  println!("{:?}", dolly);
+
+  let random_number = 0.623;
+  let animal = random_animal(random_number);
+  println!("{}", animal.noise());
 }
