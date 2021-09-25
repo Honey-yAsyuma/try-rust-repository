@@ -3,6 +3,47 @@
 
 use std::mem;
 
+// pub fn libfunc() {
+//   let a = "test";
+//   println!("{}", a);
+// }
+
+// mod modules;
+
+// use crate::modules::my_mod::nest::ABox;
+// use actix_web::{get, web, App, HttpServer, Responder};
+// use modules::my_mod::nest::BBox as B;
+// use modules::psql;
+
+// #[get("/{id}/{name}/index.html")]
+// async fn index(web::Path((id, name)): web::Path<(u32, String)>) -> impl Responder {
+//   format!("Hello {}! id:{}", name, id)
+// }
+
+// #[actix_web::main]
+// async fn main() -> std::io::Result<()> {
+//   libfunc();
+//   modules::my_mod::modfunc();
+//   let ss = modules::my_mod::nest::ABox {
+//       contents: "tesssss",
+//   };
+
+//   println!("{}", ss.contents);
+
+//   let lll = ABox { contents: "llll" };
+//   println!("{}", lll.contents);
+
+//   let zzz = B { bcontents: "zzz" };
+//   println!("{}", zzz.bcontents);
+
+//   psql::init();
+//   HttpServer::new(|| App::new().service(index))
+//       // .bind("0.0.0.0:8888")?
+//       .bind("localhost:8888")?
+//       .run()
+//       .await
+// }
+
 fn main() {
   // array_();
   // struct_();
@@ -12,7 +53,12 @@ fn main() {
   // ref_();
   // closures_();
   // hof_();
-  trait_();
+  // trait_();
+  // err_option();
+  // option_unpack();
+  // option_map();
+  // err_result();
+  // multiple_errs();
 }
 
 // borrows a slice
@@ -299,4 +345,222 @@ fn trait_() {
   let random_number = 0.623;
   let animal = random_animal(random_number);
   println!("{}", animal.noise());
+}
+
+fn give_princess(gift: Option<&str>) {
+  let inside = gift.unwrap();
+  if inside == "snake" {
+    panic!("aaaaaa");
+  }
+  println!("I love {}s!!!!!", inside);
+}
+
+fn give_commoner(gift: Option<&str>) {
+  match gift {
+    Some("snake") => println!("putting"),
+    Some(inner) => println!("safe {}", inner),
+    None => println!("No gift"),
+  }
+}
+
+fn next_birthday(current_age: Option<u8>) -> Option<String> {
+  let next_age: u8 = current_age?;
+  Some(format!("next year {}", next_age))
+}
+
+fn err_option() {
+  let food = Some("cabbage");
+  let snake = Some("snake");
+  let void = None;
+
+  give_commoner(food);
+  give_commoner(snake);
+  give_commoner(void);
+
+  let bird = Some("robin");
+  let nothing = None;
+
+  give_princess(bird);
+  give_princess(nothing);
+
+  println!("err end");
+}
+
+struct Phone {
+  address: Option<Address>,
+}
+
+#[derive(Clone, Copy)]
+struct Address {
+  phone_number: Option<PhoneNumber>,
+}
+
+#[derive(Clone, Copy)]
+struct PhoneNumber {
+  area_code: Option<u8>,
+  number: u32,
+}
+
+impl Phone {
+  fn display_number(&self) -> Option<u8> {
+    self.address?.phone_number?.area_code
+  }
+}
+
+fn option_unpack() {
+  let p = Phone {
+    address: Some(Address {
+      phone_number: Some(PhoneNumber {
+        area_code: Some(81),
+        number: 00009999,
+      }),
+    }),
+  };
+
+  assert_eq!(p.display_number(), Some(81));
+}
+
+#[derive(Debug)]
+enum Food {
+  Apple,
+  Carrot,
+  Potato,
+}
+
+#[derive(Debug)]
+// TODO
+struct Peeled(Food);
+
+#[derive(Debug)]
+struct Chopped(Food);
+
+#[derive(Debug)]
+struct Cooked(Food);
+
+fn peel(food: Option<Food>) -> Option<Peeled> {
+  match food {
+    Some(food) => Some(Peeled(food)),
+    None => None,
+  }
+}
+fn chop(peeled: Option<Peeled>) -> Option<Chopped> {
+  match peeled {
+    Some(Peeled(food)) => Some(Chopped(food)),
+    None => None,
+  }
+}
+
+fn cook(chopped: Option<Chopped>) -> Option<Cooked> {
+  chopped.map(|Chopped(food)| Cooked(food))
+}
+
+fn process(food: Option<Food>) -> Option<Cooked> {
+  food
+    .map(|f| Peeled(f))
+    .map(|Peeled(f)| Chopped(f))
+    .map(|Chopped(f)| Cooked(f))
+}
+
+fn eat(food: Option<Cooked>) {
+  match food {
+    Some(food) => println!("I love{:?}", food),
+    None => println!("Oh no"),
+  }
+}
+
+fn option_map() {
+  let apple = Some(Food::Apple);
+  let carrot = Some(Food::Carrot);
+  let potato = None;
+
+  println!("{:?}", Peeled(Food::Carrot));
+
+  let cooked_apple = cook(chop(peel(apple)));
+  let cooked_carrot = cook(chop(peel(carrot)));
+
+  let cooked_potato = process(potato);
+
+  eat(cooked_apple);
+  eat(cooked_carrot);
+  eat(cooked_potato);
+}
+
+type Res<T> = Result<T, ParseIntError>;
+
+fn multiply(first: &str, second: &str) -> Res<i32> {
+  // let f = first.parse::<i32>().unwrap();
+  // let s = second.parse::<i32>().unwrap();
+  // f + s
+
+  // match first.parse::<i32>() {
+  //   Ok(first) => match second.parse::<i32>() {
+  //     Ok(second) => Ok(first * second),
+  //     Err(e) => Err(e),
+  //   },
+  //   Err(e) => Err(e),
+  // }
+
+  // let f = match first.parse::<i32>() {
+  //   Ok(first) => first,
+  //   Err(e) => return Err(e),
+  // };
+  // let s = match second.parse::<i32>() {
+  //   Ok(second) => second,
+  //   Err(e) => return Err(e),
+  // };
+  // Ok(f * s)
+
+  // first
+  //   .parse::<i32>()
+  //   .and_then(|f| second.parse::<i32>().map(|s| f * s))
+
+  let f = first.parse::<i32>()?;
+  let s = second.parse::<i32>()?;
+
+  Ok(f * s)
+}
+
+fn print(result: Res<i32>) {
+  match result {
+    Ok(n) => println!("n is {}", n),
+    Err(e) => println!("Error: {}", e),
+  }
+}
+
+use std::num::ParseIntError;
+
+fn err_result() {
+  let twenty = multiply("10", "12");
+  // println!("double is {}", twenty);
+
+  print(twenty);
+  let tt = multiply("t", "2");
+  // println!("double is {}", tt);
+
+  print(tt);
+}
+
+// fn double_first(vec: Vec<&str>) -> i32 {
+//   let first = vec.first().unwrap();
+//   2 * first.parse::<i32>().unwrap()
+// }
+
+// fn double_first(vec: Vec<&str>) -> Option<Result<i32, ParseIntError>> {
+//   vec.first().map(|first| first.parse::<i32>().map(|n| n * 2))
+// }
+
+fn double_first(vec: Vec<&str>) -> Result<Option<i32>, ParseIntError> {
+  let opt = vec.first().map(|first| first.parse::<i32>().map(|n| n * 2));
+
+  opt.map_or(Ok(None), |r| r.map(Some))
+}
+
+fn multiple_errs() {
+  let numbers = vec!["42", "93", "18"];
+  let empty: Vec<&str> = vec![];
+  let strings = vec!["tofu", "93", "18"];
+
+  println!("{:?}", double_first(numbers));
+  println!("{:?}", double_first(empty));
+  println!("{:?}", double_first(strings));
 }
