@@ -8,3 +8,6 @@ edition = "2018"
 [dependencies]
 actix-web = "3"
 actix-rt = "1.1.1"
+anyhow = "=1.0.36"
+# chrono = "=0.4.19"
+sqlx = { version = "0.4", features = [ "runtime-tokio-rustls", "postgres", "chrono"] }

@@ -59,6 +59,7 @@ fn main() {
   // option_map();
   // err_result();
   // multiple_errs();
+  macro_();
 }
 
 // borrows a slice
@@ -563,4 +564,28 @@ fn multiple_errs() {
   println!("{:?}", double_first(numbers));
   println!("{:?}", double_first(empty));
   println!("{:?}", double_first(strings));
+}
+
+macro_rules! say_hello {
+  () => {
+    println!("macro hello");
+  };
+}
+
+macro_rules! create_func {
+  ($func_name:ident) => {
+    fn $func_name() {
+      println!("you called {:?}", stringify!($func_name));
+    }
+  };
+}
+
+create_func!(foo);
+create_func!(bar);
+
+fn macro_() {
+  say_hello!();
+
+  foo();
+  bar();
 }

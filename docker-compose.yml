@@ -1,5 +1,14 @@
 version: "3"
 services:
+  # web:
+  #   tty: true
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "18888:8888"
+  #   volumes:
+  #     - ./public/web:/var/app
   nginx:
     image: nginx:latest
     ports:
@@ -7,12 +16,16 @@ services:
     volumes:
       - ./public:/usr/share/nginx/html
 
-  web:
-    tty: true
-    build:
-      context: .
-      dockerfile: Dockerfile
+  postgresql:
+    image: postgres:13.4
     ports:
-      - "18888:8888"
+      - 5433:5432
     volumes:
-      - ./public/web:/var/app
+      - ./postgres/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    hostname: postgres
+    restart: always
+    user: root
